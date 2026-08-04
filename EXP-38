@@ -1,0 +1,100 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyO50xJ/bIPpy3AzLIS5T+aI",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/Kaluvai1203/CSA6102---Lab-/blob/main/EXP-38\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import hashlib\n",
+        "import math\n",
+        "from collections import Counter\n",
+        "\n",
+        "def sha256_hash(data: bytes) -> str:\n",
+        "    return hashlib.sha256(data).hexdigest()\n",
+        "\n",
+        "\n",
+        "def byte_entropy(data: bytes) -> float:\n",
+        "    if not data:\n",
+        "        return 0.0\n",
+        "\n",
+        "    counts = Counter(data)\n",
+        "    length = len(data)\n",
+        "\n",
+        "    return -sum(\n",
+        "        (count / length) * math.log2(count / length)\n",
+        "        for count in counts.values()\n",
+        "    )\n",
+        "\n",
+        "\n",
+        "def static_analyze(data: bytes, entropy_threshold=7.5):\n",
+        "    entropy = byte_entropy(data)\n",
+        "\n",
+        "    return {\n",
+        "        \"sha256\": sha256_hash(data),\n",
+        "        \"size_bytes\": len(data),\n",
+        "        \"entropy\": round(entropy, 2),\n",
+        "        \"likely_packed\": entropy >= entropy_threshold,\n",
+        "    }\n",
+        "\n",
+        "\n",
+        "normal_file = b\"This is a normal executable file.\"\n",
+        "\n",
+        "packed_file = bytes(range(256)) * 4\n",
+        "\n",
+        "normal_result = static_analyze(normal_file)\n",
+        "packed_result = static_analyze(packed_file)\n",
+        "\n",
+        "print(\"Normal File Analysis\")\n",
+        "print(normal_result)\n",
+        "\n",
+        "print(\"\\nPacked File Analysis\")\n",
+        "print(packed_result)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "H4SDa0r0GRwu",
+        "outputId": "bc70b0ac-c768-40ea-b54a-a5c684dd77d6"
+      },
+      "execution_count": 45,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Normal File Analysis\n",
+            "{'sha256': '5798c33eb8d93ec742af78e53ea5ddad6001b26d8955de6ab873985870a0d0bf', 'size_bytes': 33, 'entropy': 3.96, 'likely_packed': False}\n",
+            "\n",
+            "Packed File Analysis\n",
+            "{'sha256': '785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9', 'size_bytes': 1024, 'entropy': 8.0, 'likely_packed': True}\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
