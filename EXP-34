@@ -1,0 +1,135 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyOpeB84PH4CS3pwFOXvxGZ1",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/Kaluvai1203/CSA6102---Lab-/blob/main/EXP-34\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import math\n",
+        "from collections import Counter\n",
+        "\n",
+        "def shannon_entropy(s):\n",
+        "    if not s:\n",
+        "        return 0.0\n",
+        "\n",
+        "    counts = Counter(s)\n",
+        "    length = len(s)\n",
+        "\n",
+        "    return -sum(\n",
+        "        (count / length) * math.log2(count / length)\n",
+        "        for count in counts.values()\n",
+        "    )\n",
+        "\n",
+        "\n",
+        "def detect_dns_tunneling(\n",
+        "    queries,\n",
+        "    length_threshold=20,\n",
+        "    entropy_threshold=3.5\n",
+        "):\n",
+        "    \"\"\"\n",
+        "    queries: list of domain names\n",
+        "\n",
+        "    Flags queries whose leftmost label is\n",
+        "    both long and has high Shannon entropy.\n",
+        "    \"\"\"\n",
+        "\n",
+        "    flagged = []\n",
+        "\n",
+        "    for query in queries:\n",
+        "\n",
+        "        label = query.split(\".\")[0]\n",
+        "        entropy = shannon_entropy(label)\n",
+        "\n",
+        "        if (\n",
+        "            len(label) >= length_threshold and\n",
+        "            entropy >= entropy_threshold\n",
+        "        ):\n",
+        "            flagged.append({\n",
+        "                \"query\": query,\n",
+        "                \"label_length\": len(label),\n",
+        "                \"entropy\": round(entropy, 2)\n",
+        "            })\n",
+        "\n",
+        "    return flagged\n",
+        "\n",
+        "\n",
+        "\n",
+        "queries = [\n",
+        "    \"www.google.com\",\n",
+        "    \"mail.yahoo.com\",\n",
+        "    \"abcdefghijklmnopqrstuvwxyz12345.example.com\",\n",
+        "    \"a9f8d7c6b5e4f3g2h1j0k9l8m7n6.example.org\",\n",
+        "    \"login.microsoft.com\",\n",
+        "    \"x7h2k9m4q8r1t5v6y3z0p2n8a1b4.example.net\"\n",
+        "]\n",
+        "\n",
+        "results = detect_dns_tunneling(queries)\n",
+        "\n",
+        "print(\"Potential DNS Tunneling Activity:\\n\")\n",
+        "\n",
+        "if results:\n",
+        "    for item in results:\n",
+        "        print(\"Query        :\", item[\"query\"])\n",
+        "        print(\"Label Length :\", item[\"label_length\"])\n",
+        "        print(\"Entropy      :\", item[\"entropy\"])\n",
+        "        print(\"-\" * 45)\n",
+        "else:\n",
+        "    print(\"No suspicious DNS queries detected.\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "H4SDa0r0GRwu",
+        "outputId": "279ed423-dbed-42ec-e6c3-48badf341abb"
+      },
+      "execution_count": 41,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Potential DNS Tunneling Activity:\n",
+            "\n",
+            "Query        : abcdefghijklmnopqrstuvwxyz12345.example.com\n",
+            "Label Length : 31\n",
+            "Entropy      : 4.95\n",
+            "---------------------------------------------\n",
+            "Query        : a9f8d7c6b5e4f3g2h1j0k9l8m7n6.example.org\n",
+            "Label Length : 28\n",
+            "Entropy      : 4.45\n",
+            "---------------------------------------------\n",
+            "Query        : x7h2k9m4q8r1t5v6y3z0p2n8a1b4.example.net\n",
+            "Label Length : 28\n",
+            "Entropy      : 4.52\n",
+            "---------------------------------------------\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
