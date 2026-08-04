@@ -1,0 +1,140 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyOHfFLn4lKV8ETWv6yQn0bA",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/Kaluvai1203/CSA6102---Lab-/blob/main/EXP-36\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "\n",
+        "def recover_deleted_messages(sms_table):\n",
+        "    \"\"\"\n",
+        "    sms_table: list of dictionaries with\n",
+        "    is_deleted (bool) and overwritten (bool)\n",
+        "\n",
+        "    Returns a list of deleted but recoverable messages.\n",
+        "    \"\"\"\n",
+        "\n",
+        "    recoverable = [\n",
+        "        row\n",
+        "        for row in sms_table\n",
+        "        if row[\"is_deleted\"] and not row[\"overwritten\"]\n",
+        "    ]\n",
+        "\n",
+        "    return recoverable\n",
+        "\n",
+        "\n",
+        "def summarize_table(sms_table):\n",
+        "    active = [\n",
+        "        row\n",
+        "        for row in sms_table\n",
+        "        if not row[\"is_deleted\"]\n",
+        "    ]\n",
+        "\n",
+        "    recoverable = recover_deleted_messages(sms_table)\n",
+        "\n",
+        "    lost = [\n",
+        "        row\n",
+        "        for row in sms_table\n",
+        "        if row[\"is_deleted\"] and row[\"overwritten\"]\n",
+        "    ]\n",
+        "\n",
+        "    return {\n",
+        "        \"active\": len(active),\n",
+        "        \"recoverable\": len(recoverable),\n",
+        "        \"permanently_lost\": len(lost)\n",
+        "    }\n",
+        "\n",
+        "\n",
+        "\n",
+        "sms_table = [\n",
+        "    {\n",
+        "        \"id\": 1,\n",
+        "        \"sender\": \"Alice\",\n",
+        "        \"message\": \"Meeting at 10 AM\",\n",
+        "        \"is_deleted\": False,\n",
+        "        \"overwritten\": False\n",
+        "    },\n",
+        "    {\n",
+        "        \"id\": 2,\n",
+        "        \"sender\": \"Bob\",\n",
+        "        \"message\": \"Secret Password\",\n",
+        "        \"is_deleted\": True,\n",
+        "        \"overwritten\": False\n",
+        "    },\n",
+        "    {\n",
+        "        \"id\": 3,\n",
+        "        \"sender\": \"Charlie\",\n",
+        "        \"message\": \"OTP 456789\",\n",
+        "        \"is_deleted\": True,\n",
+        "        \"overwritten\": True\n",
+        "    },\n",
+        "    {\n",
+        "        \"id\": 4,\n",
+        "        \"sender\": \"David\",\n",
+        "        \"message\": \"Call me\",\n",
+        "        \"is_deleted\": False,\n",
+        "        \"overwritten\": False\n",
+        "    }\n",
+        "]\n",
+        "\n",
+        "recoverable = recover_deleted_messages(sms_table)\n",
+        "\n",
+        "print(\"Recoverable Deleted Messages:\\n\")\n",
+        "\n",
+        "for msg in recoverable:\n",
+        "    print(msg)\n",
+        "\n",
+        "summary = summarize_table(sms_table)\n",
+        "\n",
+        "print(\"\\nSummary:\")\n",
+        "print(summary)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "H4SDa0r0GRwu",
+        "outputId": "7cfbd634-3497-48e1-bd40-14c1f72bc46e"
+      },
+      "execution_count": 43,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Recoverable Deleted Messages:\n",
+            "\n",
+            "{'id': 2, 'sender': 'Bob', 'message': 'Secret Password', 'is_deleted': True, 'overwritten': False}\n",
+            "\n",
+            "Summary:\n",
+            "{'active': 2, 'recoverable': 1, 'permanently_lost': 1}\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
