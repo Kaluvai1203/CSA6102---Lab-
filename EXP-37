@@ -1,0 +1,170 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyO3RbBYzqEBJjW0KTT6OZmm",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/Kaluvai1203/CSA6102---Lab-/blob/main/EXP-37\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from datetime import datetime\n",
+        "from collections import Counter\n",
+        "\n",
+        "LOG_FMT = \"%Y-%m-%d %H:%M:%S\"\n",
+        "\n",
+        "\n",
+        "def build_baseline_ips(logs):\n",
+        "    \"\"\"\n",
+        "    Returns:\n",
+        "        {user: most_common_ip}\n",
+        "    \"\"\"\n",
+        "\n",
+        "    by_user = {}\n",
+        "\n",
+        "    for entry in logs:\n",
+        "        by_user.setdefault(entry[\"user\"], []).append(entry[\"ip\"])\n",
+        "\n",
+        "    return {\n",
+        "        user: Counter(ips).most_common(1)[0][0]\n",
+        "        for user, ips in by_user.items()\n",
+        "    }\n",
+        "\n",
+        "\n",
+        "def flag_anomalous_downloads(\n",
+        "    logs,\n",
+        "    business_start=8,\n",
+        "    business_end=20\n",
+        "):\n",
+        "    baseline = build_baseline_ips(logs)\n",
+        "\n",
+        "    flagged = []\n",
+        "\n",
+        "    for entry in logs:\n",
+        "\n",
+        "        if entry[\"action\"] != \"download\":\n",
+        "            continue\n",
+        "\n",
+        "        ts = datetime.strptime(\n",
+        "            entry[\"timestamp\"],\n",
+        "            LOG_FMT\n",
+        "        )\n",
+        "\n",
+        "        reasons = []\n",
+        "\n",
+        "        if entry[\"ip\"] != baseline.get(entry[\"user\"]):\n",
+        "            reasons.append(\"IP differs from user baseline\")\n",
+        "\n",
+        "        if not (business_start <= ts.hour < business_end):\n",
+        "            reasons.append(\"Outside business hours\")\n",
+        "\n",
+        "        if reasons:\n",
+        "            flagged.append({\n",
+        "                **entry,\n",
+        "                \"reasons\": reasons\n",
+        "            })\n",
+        "\n",
+        "    return flagged\n",
+        "\n",
+        "\n",
+        "\n",
+        "logs = [\n",
+        "    {\n",
+        "        \"timestamp\": \"2026-07-25 09:00:00\",\n",
+        "        \"user\": \"alice\",\n",
+        "        \"ip\": \"10.0.0.5\",\n",
+        "        \"action\": \"login\"\n",
+        "    },\n",
+        "    {\n",
+        "        \"timestamp\": \"2026-07-25 09:10:00\",\n",
+        "        \"user\": \"alice\",\n",
+        "        \"ip\": \"10.0.0.5\",\n",
+        "        \"action\": \"download\"\n",
+        "    },\n",
+        "    {\n",
+        "        \"timestamp\": \"2026-07-25 22:30:00\",\n",
+        "        \"user\": \"alice\",\n",
+        "        \"ip\": \"203.0.113.25\",\n",
+        "        \"action\": \"download\"\n",
+        "    },\n",
+        "    {\n",
+        "        \"timestamp\": \"2026-07-25 11:00:00\",\n",
+        "        \"user\": \"bob\",\n",
+        "        \"ip\": \"10.0.0.8\",\n",
+        "        \"action\": \"download\"\n",
+        "    },\n",
+        "    {\n",
+        "        \"timestamp\": \"2026-07-25 12:00:00\",\n",
+        "        \"user\": \"bob\",\n",
+        "        \"ip\": \"10.0.0.8\",\n",
+        "        \"action\": \"login\"\n",
+        "    }\n",
+        "]\n",
+        "\n",
+        "alerts = flag_anomalous_downloads(logs)\n",
+        "\n",
+        "print(\"Anomalous Download Detection\\n\")\n",
+        "\n",
+        "if alerts:\n",
+        "    for alert in alerts:\n",
+        "        print(f\"User      : {alert['user']}\")\n",
+        "        print(f\"Timestamp : {alert['timestamp']}\")\n",
+        "        print(f\"IP        : {alert['ip']}\")\n",
+        "        print(f\"Action    : {alert['action']}\")\n",
+        "        print(\"Reasons   :\")\n",
+        "        for reason in alert[\"reasons\"]:\n",
+        "            print(\"  -\", reason)\n",
+        "        print(\"-\" * 45)\n",
+        "else:\n",
+        "    print(\"No anomalous downloads detected.\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "H4SDa0r0GRwu",
+        "outputId": "80021628-20d5-472a-aceb-d5900bc03d99"
+      },
+      "execution_count": 44,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Anomalous Download Detection\n",
+            "\n",
+            "User      : alice\n",
+            "Timestamp : 2026-07-25 22:30:00\n",
+            "IP        : 203.0.113.25\n",
+            "Action    : download\n",
+            "Reasons   :\n",
+            "  - IP differs from user baseline\n",
+            "  - Outside business hours\n",
+            "---------------------------------------------\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
